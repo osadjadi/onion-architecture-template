@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace SharedKernel.Extensions {
 	public static class PersianDateExtensions {
-        public static string GetPersianNameOfWeekDay(DayOfWeek day)
+        private static string GetPersianNameOfWeekDay(DayOfWeek day)
         {
             return day switch
             {
@@ -16,9 +16,9 @@ namespace SharedKernel.Extensions {
                 _ => ""
             };
         }
-        private static string GetPersianNameOfMonth(int mount)
+        private static string GetPersianNameOfMonth(int month)
         {
-            switch (mount)
+            switch (month)
             {
                 case 1:
                     return "فروردین";
@@ -116,127 +116,44 @@ namespace SharedKernel.Extensions {
             }
             return "";
         }
-        public static string GetShortPersianDateWithDash(this DateTime dateTime)
-        {
-            return new PersianCalendar().GetYear(dateTime) + "-" +
-                   new PersianCalendar().GetMonth(dateTime) + "-" +
-                   new PersianCalendar().GetDayOfMonth(dateTime);
 
-        }
-        private static string GetShortPersianDate(this DateTime dateTime)
-        {
-            var persianDate = new PersianCalendar().GetYear(dateTime) + "/";
-
-            // اگر ماه کوچکتر از 10 باشد یک صفر به آن اضافه می کند
-            if (Convert.ToInt32(new PersianCalendar().GetMonth(dateTime)) > 9)
-            {
-                persianDate += new PersianCalendar().GetMonth(dateTime) + "/";
-            }
-            else
-            {
-                persianDate += "0" + new PersianCalendar().GetMonth(dateTime) + "/";
-            }
-            // اگر روز کوچکتر از 10 باشد یک صفر به آن اضافه می کند
-            if (Convert.ToInt32(new PersianCalendar().GetDayOfMonth(dateTime)) > 9)
-            {
-                persianDate += new PersianCalendar().GetDayOfMonth(dateTime);
-            }
-            else
-            {
-                persianDate += "0" + new PersianCalendar().GetDayOfMonth(dateTime) ;
-            }
-            return persianDate;
-
-        }
-        public static string GetPersianDateMonth(this DateTime dateTime)
-        {
-            return Convert.ToInt32(new PersianCalendar().GetMonth(dateTime)) > 9
-                ? new PersianCalendar().GetMonth(dateTime).ToString()
-                : "0" + new PersianCalendar().GetMonth(dateTime);
-        }
-        public static int GetPersianMonth(this DateTime dateTime)
-        {
-            return new PersianCalendar().GetMonth(dateTime);
-        }
-        public static int GetPersianYear(this DateTime dateTime)
-        {
-            return new PersianCalendar().GetYear(dateTime);
-        }
-        public static string GetShortPersianDateTime(this DateTime dateTime)
+        public static string GetShortPersianDate(this DateTime dateTime)
         {
             return new PersianCalendar().GetYear(dateTime) + "/" +
                    new PersianCalendar().GetMonth(dateTime) + "/" +
-                   new PersianCalendar().GetDayOfMonth(dateTime) + " - " +
-                   new PersianCalendar().GetHour(dateTime) + ":" +
-                   new PersianCalendar().GetMinute(dateTime);
-
+                   new PersianCalendar().GetDayOfMonth(dateTime);
+        }
+        public static string GetShortPersianDateTime(this DateTime dateTime)
+        {
+            return $"{dateTime.GetShortPersianDate()} - {new PersianCalendar().GetHour(dateTime)}:{new PersianCalendar().GetMinute(dateTime)}";
         }
         public static string GetLongPersianDate(this DateTime dateTime)
         {
-            return (GetPersianNameOfWeekDay(new PersianCalendar().GetDayOfWeek(dateTime)) + "، " +
-                    GetPersianNameOfDay(new PersianCalendar().GetDayOfMonth(dateTime)) + "  " +
-                    GetPersianNameOfMonth(new PersianCalendar().GetMonth(dateTime)) + "  " +
-                    (new PersianCalendar().GetYear(dateTime).ToString(CultureInfo.InvariantCulture).ToPersianNumbers()));
+            return GetPersianNameOfWeekDay(new PersianCalendar().GetDayOfWeek(dateTime)) + "، " +
+                   GetPersianNameOfDay(new PersianCalendar().GetDayOfMonth(dateTime)) + "  " +
+                   GetPersianNameOfMonth(new PersianCalendar().GetMonth(dateTime)) + "  " +
+                   new PersianCalendar().GetYear(dateTime).ToString(CultureInfo.InvariantCulture).ToPersianNumbers();
         }
         public static string GetLongPersianDateTime(this DateTime dateTime)
         {
-            return (GetPersianNameOfWeekDay(new PersianCalendar().GetDayOfWeek(dateTime)) + "، " +
-                    GetPersianNameOfDay(new PersianCalendar().GetDayOfMonth(dateTime)) + "  " +
-                    GetPersianNameOfMonth(new PersianCalendar().GetMonth(dateTime)) + "  " +
-                    (new PersianCalendar().GetYear(dateTime).ToString(CultureInfo.InvariantCulture).ToPersianNumbers())) +
-                    " - " +
-                    new PersianCalendar().GetHour(dateTime).ToString(CultureInfo.InvariantCulture).ToPersianNumbers()
-                    + ":" +
-                    new PersianCalendar().GetMinute(dateTime).ToString(CultureInfo.InvariantCulture).ToPersianNumbers();
+            return $"{dateTime.GetLongPersianDate()} - {new PersianCalendar().GetHour(dateTime).ToString(CultureInfo.InvariantCulture).ToPersianNumbers()}:{new PersianCalendar().GetMinute(dateTime).ToString(CultureInfo.InvariantCulture).ToPersianNumbers()}";
         }
-        private static DateTime GetGregorianDate(this string persianDate)
+        /// <summary>
+        /// Converts Persian Date in Year/Month/Day format to corresponding gregorian date
+        /// </summary>
+        /// <param name="persianDate">Persian Date in Year/Month/Day format</param>
+        /// <returns></returns>
+        public static DateTime GetGregorianDate(this string persianDate)
         {
             var strDate = persianDate.Split('/');
             int y, m, d;
-            if (strDate[0].Length == 4)
-            {
-                y = int.Parse(strDate[0]);
-                m = int.Parse(strDate[1]);
-                d = int.Parse(strDate[2]);
-            }
-            else
-            {
-                y = int.Parse(strDate[2]);
-                m = int.Parse(strDate[0]);
-                d = int.Parse(strDate[1]);
-            }
+
+            y = int.Parse(strDate[0]);
+            m = int.Parse(strDate[1]);
+            d = int.Parse(strDate[2]);
+
             var jC = new PersianCalendar();
             return jC.ToDateTime(y, m, d, 0, 0, 0, 0);
-        }
-        public static DateTime GetGregorianDateFromPersianNumber(this string persianDate)
-        {
-            persianDate = persianDate.ToEnglishNumbers();
-            var x = persianDate.Split('/').ToArray();
-            return x[0].Length == 4 ? $"{x[0]}/{x[1]}/{x[2]}".GetGregorianDate() : $"{x[2]}/{x[1]}/{x[0]}".GetGregorianDate();
-        }
-        public static DateTime GetGregorianDateTime(this string persianDateTime)
-        {
-            var strDate = persianDateTime.Split(' ')[0].Split('/');
-            var strTime = persianDateTime.Split(' ')[1].Split(':');
-            int y, m, d, hh, mm;
-            if (strDate[0].Length == 4)
-            {
-                y = int.Parse(strDate[0]);
-                m = int.Parse(strDate[1]);
-                d = int.Parse(strDate[2]);
-                hh = int.Parse(strTime[0]);
-                mm = int.Parse(strTime[1]);
-            }
-            else
-            {
-                y = int.Parse(strDate[2]);
-                m = int.Parse(strDate[1]);
-                d = int.Parse(strDate[0]);
-                hh = int.Parse(strTime[0]);
-                mm = int.Parse(strTime[1]);
-            }
-            var jC = new PersianCalendar();
-            return jC.ToDateTime(y, m, d, hh, mm, 0, 0);
         }
     }
 }
